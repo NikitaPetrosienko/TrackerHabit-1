@@ -6,4 +6,5 @@ protocol TrackerStoreProtocol {
     func fetchTrackers() throws -> [Tracker]
     func deleteTracker(id: UUID) throws
     func countTrackers() -> Int
+    func updateTracker(_ tracker: Tracker) throws
 }

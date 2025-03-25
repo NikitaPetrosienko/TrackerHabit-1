@@ -1,4 +1,5 @@
 
+
 import UIKit
 
 // MARK: - TrackerColorCell
@@ -34,6 +35,11 @@ final class TrackerColorCell: UICollectionViewCell {
     
     func configure(with color: UIColor) {
         colorView.backgroundColor = color
+        if isSelected {
+            contentView.layer.borderWidth = 3
+            contentView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
+            contentView.layer.cornerRadius = 8
+        }
     }
     
     override var isSelected: Bool {

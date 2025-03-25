@@ -14,6 +14,8 @@ final class NewHabitController: UIViewController {
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     private let trackerStore: TrackerStoreProtocol = TrackerStore.shared
+    private var editingTrackerId: UUID?
+    private var completedDaysCount: Int = 0
     
     // MARK: - UI Elements
     
@@ -23,6 +25,16 @@ final class NewHabitController: UIViewController {
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textColor = .black
         label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var numbersOfDaysLabel: UILabel = {
+        let label = UILabel()
+        label.text = "5 дней"
+        label.font = .systemFont(ofSize: 32, weight: .bold)
+        label.textColor = .black
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
         return label
     }()
     
@@ -55,6 +67,7 @@ final class NewHabitController: UIViewController {
         let chevronImage = UIImage(systemName: "chevron.right")?.withRenderingMode(.alwaysTemplate)
         button.setImage(chevronImage, for: .normal)
         button.backgroundColor = UIColor(named: "backgroundGray")
+        button.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         button.layer.cornerRadius = 16
         button.tintColor = .gray
         button.titleLabel?.numberOfLines = 0
@@ -67,12 +80,14 @@ final class NewHabitController: UIViewController {
         button.setTitleColor(.black, for: .normal)
         button.contentHorizontalAlignment = .left
         button.contentEdgeInsets = UIEdgeInsets(top: 15, left: 16, bottom: 15, right: 0)
+        button.titleLabel?.font = .systemFont(ofSize: 17)
         button.titleLabel?.numberOfLines = 0
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(scheduleButtonTapped), for: .touchUpInside)
         let chevronImage = UIImage(systemName: "chevron.right")?.withRenderingMode(.alwaysTemplate)
         button.setImage(chevronImage, for: .normal)
         button.backgroundColor = UIColor(named: "backgroundGray")
+        button.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         button.layer.cornerRadius = 16
         button.tintColor = .gray
         return button
@@ -211,6 +226,7 @@ final class NewHabitController: UIViewController {
         view.addSubview(cancelButton)
         view.addSubview(createButton)
         
+        scrollView.addSubview(numbersOfDaysLabel)
         scrollView.addSubview(titleLabel)
         scrollView.addSubview(nameTextField)
         scrollView.addSubview(categoryButton)
@@ -233,7 +249,13 @@ final class NewHabitController: UIViewController {
             titleLabel.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 27),
             titleLabel.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
             
-            nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 24),
+            numbersOfDaysLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
+            numbersOfDaysLabel.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
+            
+            nameTextField.topAnchor.constraint(
+                equalTo: numbersOfDaysLabel.isHidden ? titleLabel.bottomAnchor : numbersOfDaysLabel.bottomAnchor, constant: 24
+                       ),
+            
             nameTextField.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             nameTextField.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
@@ -321,6 +343,94 @@ final class NewHabitController: UIViewController {
         }
     }
     
+    // MARK: - Public Methods
+
+    func configurator(tracker: Tracker, categoryTitle: String) {
+        numbersOfDaysLabel.isHidden = false
+        titleLabel.text = "Редактирование привычки"
+        createButton.setTitle("Сохранить", for: .normal)
+        self.editingTrackerId = tracker.id
+        self.nameTextField.text = tracker.title
+        self.selectedCategory = categoryTitle
+        self.selectedEmoji = tracker.emoji
+        self.selectedColor = tracker.color
+        self.schedule = tracker.schedule
+        self.createButton.setTitle("Сохранить", for: .normal)
+        
+           if let emojiIndex = emojis.emojis.firstIndex(of: tracker.emoji) {
+               emojiCollectionView.selectItem(
+                   at: IndexPath(item: emojiIndex, section: 0),
+                   animated: false,
+                   scrollPosition: []
+               )
+           }
+        
+           if let colorIndex = colors.colors.firstIndex(where: { $0.toHex() == tracker.color.toHex() }) {
+               colorCollectionView.selectItem(
+                   at: IndexPath(item: colorIndex, section: 0),
+                   animated: false,
+                   scrollPosition: []
+               )
+           }
+        updateCreateButtonState()
+        
+        let title = "Категория\n"
+        let attributedString = NSMutableAttributedString(string: title)
+        attributedString.addAttributes(
+            [
+                .font: UIFont.systemFont(ofSize: 17),
+                .foregroundColor: UIColor.black
+            ],
+            range: NSRange(location: 0, length: title.count - 1)
+        )
+        let categoryString = NSAttributedString(
+            string: categoryTitle,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 17),
+                .foregroundColor: UIColor(named: "textGray") ?? .gray
+            ]
+        )
+        attributedString.append(categoryString)
+        categoryButton.setAttributedTitle(attributedString, for: .normal)
+        
+        let weekDays = schedule.map { $0.shortForm }.joined(separator: ", ")
+        let scheduleTitle = "Расписание\n"
+        let scheduleAttributedString = NSMutableAttributedString(string: scheduleTitle)
+        scheduleAttributedString.addAttributes(
+            [
+                .font: UIFont.systemFont(ofSize: 17),
+                .foregroundColor: UIColor.black
+            ],
+            range: NSRange(location: 0, length: scheduleTitle.count - 1)
+        )
+        let daysString = NSAttributedString(
+            string: weekDays,
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 17),
+                .foregroundColor: UIColor(named: "textGray") ?? .gray
+            ]
+        )
+        scheduleAttributedString.append(daysString)
+        scheduleButton.setAttributedTitle(scheduleAttributedString, for: .normal)
+        
+        print("\(#file):\(#line)] \(#function) Контроллер сконфигурирован для редактирования трекера: \(tracker.title)")
+    }
+    
+    private func formatDaysCount(_ count: Int) -> String {
+        let format = NSLocalizedString("dayCount",
+                                     tableName: "LocalizableDays",
+                                     comment: "Number of days")
+        return String.localizedStringWithFormat(format, count)
+    }
+    
+    func setCompletedDaysCount(_ count: Int) {
+        self.completedDaysCount = count
+        let formattedText = formatDaysCount(count)
+        numbersOfDaysLabel.text = formattedText
+        numbersOfDaysLabel.isHidden = false
+        print("\(#file):\(#line)] \(#function) Установлено количество дней: \(count)")
+    }
+    
     // MARK: - Actions
     
     @objc private func cancelButtonTapped() {
@@ -348,37 +458,60 @@ final class NewHabitController: UIViewController {
             return
         }
         
-        let trackersCoreStore = TrackerCoreStore()
-        
-        let newTracker = Tracker(
-            id: UUID(),
-            title: title,
-            color: color,
-            emoji: emoji,
-            schedule: schedule,
-            isPinned: false,
-            creationDate: nil
-        )
-        
         let categoryTitle = selectedCategory ?? "Важное"
-           let trackerCategory = TrackerCategory(
-               title: categoryTitle,
-               trackers: [newTracker]
-           )
         
-        do {
-            try trackerStore.createTracker(newTracker, category: trackerCategory)
-                  print("\(#file):\(#line)] \(#function) Трекер сохранен")
-                  delegate?.didCreateTracker(newTracker, category: categoryTitle)
-                  dismiss(animated: true)
-              } catch {
-                  print("\(#file):\(#line)] \(#function) Ошибка сохранения трекера: \(error)")
-              }
-          }
+        if let editingId = editingTrackerId {
+            let updatedTracker = Tracker(
+                id: editingId,
+                title: title,
+                color: color,
+                emoji: emoji,
+                schedule: schedule,
+                isPinned: false,
+                creationDate: nil,
+                originalCategory: categoryTitle
+            )
+            
+            do {
+                try trackerStore.updateTracker(updatedTracker)
+                print("\(#file):\(#line)] \(#function) Трекер обновлен: \(title)")
+                delegate?.didUpdateTracker(updatedTracker, category: categoryTitle)
+                dismiss(animated: true)
+            } catch {
+                print("\(#file):\(#line)] \(#function) Ошибка обновления трекера: \(error)")
+            }
+        } else {
+            let newTracker = Tracker(
+                id: UUID(),
+                title: title,
+                color: color,
+                emoji: emoji,
+                schedule: schedule,
+                isPinned: false,
+                creationDate: nil,
+                originalCategory: categoryTitle
+            )
+            
+            let trackerCategory = TrackerCategory(
+                title: categoryTitle,
+                trackers: [newTracker]
+            )
+            
+            do {
+                try trackerStore.createTracker(newTracker, category: trackerCategory)
+                print("\(#file):\(#line)] \(#function) Трекер создан: \(title)")
+                delegate?.didCreateTracker(newTracker, category: categoryTitle)
+                dismiss(animated: true)
+            } catch {
+                print("\(#file):\(#line)] \(#function) Ошибка создания трекера: \(error)")
+            }
+        }
+    }
     
     @objc private func scheduleButtonTapped() {
-        let scheduleController = NewScheduleController()
+        let scheduleController = NewScheduleController(selectedWeekDays: schedule)
         scheduleController.delegate = self
+        print("\(#file):\(#line)] \(#function) Открываем расписание с выбранными днями: \(schedule)")
         present(scheduleController, animated: true)
     }
     

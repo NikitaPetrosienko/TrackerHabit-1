@@ -7,7 +7,8 @@ struct Tracker {
     let color: UIColor
     let emoji: String
     let schedule: Set<WeekDay>
-    let isPinned: Bool
+    var isPinned: Bool
     let creationDate: Date?
+    let originalCategory: String?
 }
 

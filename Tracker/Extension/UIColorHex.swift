@@ -10,7 +10,9 @@ extension UIColor {
         var blue: CGFloat = 0
         var alpha: CGFloat = 0
         
-        self.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        guard self.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+                  return nil
+              }
         
         let r = Int(red * 255)
         let g = Int(green * 255)

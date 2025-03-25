@@ -1,5 +1,6 @@
 
 import UIKit
+import YandexMobileMetrica
 
 final class TrackerCell: UICollectionViewCell {
     
@@ -65,6 +66,15 @@ final class TrackerCell: UICollectionViewCell {
         return label
     }()
     
+    private lazy var pinIcon: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "pin.fill")
+        imageView.tintColor = .white
+        imageView.isHidden = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
     // MARK: - Lifecycle
     
     override init(frame: CGRect) {
@@ -85,6 +95,7 @@ final class TrackerCell: UICollectionViewCell {
         cardView.addSubview(titleLabel)
         contentView.addSubview(completeButton)
         contentView.addSubview(counterLabel)
+        cardView.addSubview(pinIcon)
         
         NSLayoutConstraint.activate([
             cardView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -111,6 +122,11 @@ final class TrackerCell: UICollectionViewCell {
             
             counterLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             counterLabel.centerYAnchor.constraint(equalTo: completeButton.centerYAnchor),
+            
+            pinIcon.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 12),
+            pinIcon.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -12),
+            pinIcon.widthAnchor.constraint(equalToConstant: 16),
+            pinIcon.heightAnchor.constraint(equalToConstant: 16)
         ])
     }
     
@@ -128,10 +144,13 @@ final class TrackerCell: UICollectionViewCell {
         isCompleted.toggle()
         setCompletedState(isCompleted)
         completedDaysCount += isCompleted ? 1 : -1
-        counterLabel.text = "\(completedDaysCount) дней"
+        counterLabel.text = pluralizeDays(completedDaysCount)
         completionHandler?()
         
-        print("\(#file):\(#line)] \(#function) Изменено состояние трекера: \(tracker.title), выполнено: \(isCompleted)")
+        AnalyticsService.shared.trackEvent("click", parameters: [
+            "Screen": "Main",
+            "Item": "track"
+        ])
     }
     
     // MARK: - Private Methods
@@ -183,8 +202,17 @@ final class TrackerCell: UICollectionViewCell {
         completeButton.backgroundColor = tracker.color
         completeButton.layer.borderColor = tracker.color.cgColor
         completeButton.tintColor = .white
-        counterLabel.text = "\(completedDaysCount) дней"
+        counterLabel.text = pluralizeDays(completedDaysCount)
         setCompletedState(isCompleted)
+        
+        pinIcon.isHidden = !tracker.isPinned
+    }
+    
+    private func pluralizeDays(_ count: Int) -> String {
+        let format = NSLocalizedString("dayCount",
+                                     tableName: "LocalizableDays",
+                                     comment: "Number of days")
+        return String.localizedStringWithFormat(format, count)
     }
 }
 

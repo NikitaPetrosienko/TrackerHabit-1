@@ -1,11 +1,18 @@
 
-import Testing
+
+import XCTest
+import UIKit
+import SnapshotTesting
 @testable import Tracker
 
-struct TrackerTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+final class TrackerTests: XCTestCase {
+    
+    func testViewController() {
+        
+        let vc = TrackersViewController()
+        
+        assertSnapshot(of: vc, as: .image(traits: (UITraitCollection(userInterfaceStyle: .light))), record: false)
+        assertSnapshot(of: vc, as: .image(traits: (UITraitCollection(userInterfaceStyle: .dark))), record: false)
+        
     }
-
 }

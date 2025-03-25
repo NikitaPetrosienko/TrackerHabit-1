@@ -276,7 +276,8 @@ final class NewIrregularEventController: UIViewController {
             emoji: emoji,
             schedule: [currentWeekDay],
             isPinned: false,
-            creationDate: Date()
+            creationDate: Date(),
+            originalCategory: category
         )
         
         let trackerCategory = TrackerCategory(title: category, trackers: [newTracker])

@@ -70,16 +70,32 @@ final class NewScheduleController: UIViewController {
         ])
     }
     
+    init(selectedWeekDays: Set<WeekDay> = []) {
+        self.selectedWeekDays = selectedWeekDays
+        super.init(nibName: nil, bundle: nil)
+        print("\(#file):\(#line)] \(#function) Инициализирован с днями: \(selectedWeekDays)")
+    }
+    
+    required init?(coder: NSCoder) {
+        print("\(#file):\(#line)] \(#function) Ошибка: init(coder:) не реализован")
+        return nil
+    }
+    
     private func setupWeekDaysControls() {
         WeekDay.allCases.forEach { day in
             let containerView = createWeekDayControl(for: day)
             stackView.addArrangedSubview(containerView)
+            
+            if let toggle = containerView.subviews.compactMap({ $0 as? UISwitch }).first {
+                toggle.isOn = selectedWeekDays.contains(day)
+            }
             
             NSLayoutConstraint.activate([
                 containerView.heightAnchor.constraint(equalToConstant: 75)
             ])
         }
     }
+    
     
     private func createWeekDayControl(for day: WeekDay) -> UIView {
         let container = UIView()
