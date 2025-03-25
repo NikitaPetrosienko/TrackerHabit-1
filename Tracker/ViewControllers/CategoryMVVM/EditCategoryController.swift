@@ -1,13 +1,19 @@
 
 import UIKit
 
-final class CategoryNameController: UIViewController {
+final class EditCategoryController: UIViewController {
+    
+    // MARK: - Properties
+    
+    private let viewModel: CategoryListViewModel
+    private let categoryTitle: String
+    weak var delegate: CategoryListControllerDelegate?
     
     // MARK: - UI Elements
     
     private lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Новая категория"
+        label.text = "Редактирование категории"
         label.font = .systemFont(ofSize: 16, weight: .medium)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -23,6 +29,7 @@ final class CategoryNameController: UIViewController {
         textField.leftViewMode = .always
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.delegate = self
+        textField.tintColor = .black
         return textField
     }()
     
@@ -30,24 +37,32 @@ final class CategoryNameController: UIViewController {
         let button = UIButton()
         button.setTitle("Готово", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .gray
+        button.backgroundColor = .black
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         return button
     }()
     
-    private lazy var tapGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
-        return gesture
-    }()
+    // MARK: - Init
+    
+    init(viewModel: CategoryListViewModel, categoryTitle: String) {
+        self.viewModel = viewModel
+        self.categoryTitle = categoryTitle
+        super.init(nibName: nil, bundle: nil)
+        print("\(#file):\(#line)] \(#function) Инициализирован с категорией: \(categoryTitle)")
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
-        view.addGestureRecognizer(tapGesture)
+        nameTextField.text = categoryTitle
     }
     
     // MARK: - Setup
@@ -78,32 +93,19 @@ final class CategoryNameController: UIViewController {
     // MARK: - Actions
     
     @objc private func doneButtonTapped() {
-        print("\(#file):\(#line)] \(#function) Нажата кнопка Готово")
-    }
-    
-    @objc private func hideKeyboard() {
-        view.endEditing(true)
-        print("\(#file):\(#line)] \(#function) Клавиатура скрыта")
+        guard let newTitle = nameTextField.text, !newTitle.isEmpty else { return }
+        viewModel.updateCategory(oldTitle: categoryTitle, newTitle: newTitle)
+        delegate?.didUpdateCategories([newTitle])
+        dismiss(animated: true)
+        print("\(#file):\(#line)] \(#function) Обновлена категория: \(categoryTitle) -> \(newTitle)")
     }
 }
 
 // MARK: - UITextFieldDelegate
 
-extension CategoryNameController: UITextFieldDelegate {
+extension EditCategoryController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
-        print("\(#file):\(#line)] \(#function) Клавиатура скрыта по нажатию Return")
         return true
-    }
-    
-    func textFieldDidChangeSelection(_ textField: UITextField) {
-        if let text = textField.text, !text.isEmpty {
-            doneButton.backgroundColor = .black
-            doneButton.isEnabled = true
-        } else {
-            doneButton.backgroundColor = .gray
-            doneButton.isEnabled = false
-        }
-        print("\(#file):\(#line)] \(#function) Состояние кнопки изменено: \(doneButton.isEnabled)")
     }
 }

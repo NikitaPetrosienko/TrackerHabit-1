@@ -293,7 +293,8 @@ final class NewIrregularEventController: UIViewController {
     }
     
     @objc private func categoryButtonTapped() {
-        let categoryListController = CategoryListController(selectedCategory: selectedCategory)
+        let viewModel = CategoryListViewModel(selectedCategory: selectedCategory)
+        let categoryListController = CategoryListController(viewModel: viewModel)
         categoryListController.delegate = self
         let navigationController = UINavigationController(rootViewController: categoryListController)
         navigationController.modalPresentationStyle = .automatic

@@ -1,7 +1,13 @@
 
 import UIKit
 
-final class CategoryNameController: UIViewController {
+final class NewCategoryController: UIViewController {
+    
+    // MARK: - Properties
+    
+    private let viewModel: NewCategoryViewModel
+    weak var delegate: CategoryListControllerDelegate?
+    private var categoryListController: CategoryListController?
     
     // MARK: - UI Elements
     
@@ -23,6 +29,7 @@ final class CategoryNameController: UIViewController {
         textField.leftViewMode = .always
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.delegate = self
+        textField.tintColor = .black
         return textField
     }()
     
@@ -34,36 +41,73 @@ final class CategoryNameController: UIViewController {
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
+        button.isEnabled = false
         return button
     }()
     
-    private lazy var tapGesture: UITapGestureRecognizer = {
-        let gesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
-        return gesture
-    }()
+    // MARK: - Init
+    
+    init(viewModel: NewCategoryViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+        print("\(#file):\(#line)] \(#function) Инициализирован с ViewModel")
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .white
+        
+        navigationItem.title = "Новая категория"
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        
         setupViews()
-        view.addGestureRecognizer(tapGesture)
+        setupBindings()
+        nameTextField.delegate = self
     }
     
     // MARK: - Setup
     
+    private func setupBindings() {
+        viewModel.onValidationChanged = { [weak self] isValid in
+            self?.doneButton.isEnabled = isValid
+            self?.doneButton.backgroundColor = isValid ? .black : .gray
+        }
+        
+        viewModel.onCompletion = { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let categoryTitle):
+                self.delegate?.didSelectCategory(categoryTitle)
+                self.delegate?.didUpdateCategories([categoryTitle])
+                if let presentingVC = self.presentingViewController as? UINavigationController,
+                   let rootVC = presentingVC.viewControllers.first {
+                    presentingVC.dismiss(animated: true) {
+                        rootVC.dismiss(animated: true)
+                    }
+                } else {
+                    self.dismiss(animated: true)
+                }
+                print("\(#file):\(#line)] \(#function) Категория создана и экраны закрыты: \(categoryTitle)")
+            case .failure(let error):
+                print("\(#file):\(#line)] \(#function) Ошибка создания категории: \(error)")
+            }
+        }
+    }
+    
     private func setupViews() {
         view.backgroundColor = .white
-        
-        view.addSubview(titleLabel)
         view.addSubview(nameTextField)
         view.addSubview(doneButton)
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 27),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            nameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
+            nameTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             nameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             nameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             nameTextField.heightAnchor.constraint(equalToConstant: 75),
@@ -75,10 +119,16 @@ final class CategoryNameController: UIViewController {
         ])
     }
     
+    private func setupGestures() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        view.addGestureRecognizer(tapGesture)
+    }
+    
     // MARK: - Actions
     
     @objc private func doneButtonTapped() {
-        print("\(#file):\(#line)] \(#function) Нажата кнопка Готово")
+        guard let title = nameTextField.text else { return }
+        viewModel.createCategory(title: title)
     }
     
     @objc private func hideKeyboard() {
@@ -89,7 +139,7 @@ final class CategoryNameController: UIViewController {
 
 // MARK: - UITextFieldDelegate
 
-extension CategoryNameController: UITextFieldDelegate {
+extension NewCategoryController: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         print("\(#file):\(#line)] \(#function) Клавиатура скрыта по нажатию Return")
@@ -97,13 +147,6 @@ extension CategoryNameController: UITextFieldDelegate {
     }
     
     func textFieldDidChangeSelection(_ textField: UITextField) {
-        if let text = textField.text, !text.isEmpty {
-            doneButton.backgroundColor = .black
-            doneButton.isEnabled = true
-        } else {
-            doneButton.backgroundColor = .gray
-            doneButton.isEnabled = false
-        }
-        print("\(#file):\(#line)] \(#function) Состояние кнопки изменено: \(doneButton.isEnabled)")
+        viewModel.validateInput(textField.text)
     }
 }

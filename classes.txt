@@ -1,0 +1,32 @@
+./Tracker/Extension/SupplementaryView.swift:final class SupplementaryView: UICollectionReusableView {
+./Tracker/Extension/CategoryCell.swift:final class CategoryCell: UITableViewCell {
+./Tracker/Extension/TrackerCell.swift:final class TrackerCell: UICollectionViewCell {
+./Tracker/Delegate/TrackerCoreStoreFetchedResultsControllerDelegate.swift:final class TrackerCoreStoreFetchedResultsControllerDelegate: NSObject, NSFetchedResultsControllerDelegate {
+./Tracker/CoreData/PersistentContainer.swift:final class PersistentContainer {
+./Tracker/CoreData/TrackerCoreStore.swift:final class TrackerCoreStore: TrackerStoreProtocol {
+./Tracker/CoreData/TrackerRecordStore.swift:final class TrackerRecordStore: NSObject {
+./Tracker/CoreData/TrackerStore.swift:final class TrackerStore {
+./Tracker/CoreData/TrackerCategoryStore.swift:final class TrackerCategoryStore: NSObject {
+./Tracker/ViewControllers/CategoryNameController 2.swift:final class CategoryNameController: UIViewController {
+./Tracker/ViewControllers/TrackersViewController.swift:final class TrackersViewController: UIViewController {
+./Tracker/ViewControllers/NewIrregularEventController.swift:final class NewIrregularEventController: UIViewController {
+./Tracker/ViewControllers/CategoryMVVM/ViewModels/NewCategoryViewModel.swift:final class NewCategoryViewModel {
+./Tracker/ViewControllers/CategoryMVVM/ViewModels/CategoryListViewModel.swift:final class CategoryListViewModel {
+./Tracker/ViewControllers/CategoryMVVM/EditCategoryController.swift:final class EditCategoryController: UIViewController {
+./Tracker/ViewControllers/CategoryMVVM/NewCategoryController.swift:final class NewCategoryController: UIViewController {
+./Tracker/ViewControllers/CategoryMVVM/CategoryListController.swift:final class CategoryListController: UIViewController {
+./Tracker/ViewControllers/NewHabitController.swift:final class NewHabitController: UIViewController {
+./Tracker/ViewControllers/NewTrackerController.swift:final class NewTrackerController: UIViewController {
+./Tracker/ViewControllers/NewScheduleController.swift:final class NewScheduleController: UIViewController {
+./Tracker/ViewControllers/NewCategoryController 2.swift:final class NewCategoryController: UIViewController {
+./Tracker/ViewControllers/Onboarding/FirstOnboardingViewController.swift:final class FirstOnboardingViewController: UIViewController {
+./Tracker/ViewControllers/Onboarding/SecondOnboardingViewControllerDelegate.swift:final class SecondOnboardingViewController: UIViewController {
+./Tracker/ViewControllers/Onboarding/OnboardingViewController.swift:final class OnboardingViewController: UIPageViewController {
+./Tracker/ViewControllers/TabBarController.swift:final class TabBarController: UITabBarController {
+./Tracker/Data/AppNavigationService.swift:final class AppNavigationService {
+./Tracker/Data/TrackerEmojiCell.swift:final class TrackerEmojiCell: UICollectionViewCell {
+./Tracker/Data/ColorsStorage.swift:final class ColorsStorage {
+./Tracker/Data/TrackerColorCell.swift:final class TrackerColorCell: UICollectionViewCell {
+./Tracker/Data/EmojiStorage.swift:final class EmojiStorage {
+./TrackerUITests/TrackerUITests.swift:final class TrackerUITests: XCTestCase {
+./TrackerUITests/TrackerUITestsLaunchTests.swift:final class TrackerUITestsLaunchTests: XCTestCase {

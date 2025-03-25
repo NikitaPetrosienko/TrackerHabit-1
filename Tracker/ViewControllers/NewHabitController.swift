@@ -387,10 +387,10 @@ final class NewHabitController: UIViewController {
     }
     
     @objc private func categoryButtonTapped() {
-        let categoryController = CategoryListController(selectedCategory: selectedCategory)
-        categoryController.delegate = self
-        
-        let navigationController = UINavigationController(rootViewController: categoryController)
+        let viewModel = CategoryListViewModel(selectedCategory: selectedCategory)
+        let categoryListController = CategoryListController(viewModel: viewModel)
+        categoryListController.delegate = self
+        let navigationController = UINavigationController(rootViewController: categoryListController)
         navigationController.modalPresentationStyle = .automatic
         print("\(#file):\(#line)] \(#function) Переход к выбору категории")
         present(navigationController, animated: true)

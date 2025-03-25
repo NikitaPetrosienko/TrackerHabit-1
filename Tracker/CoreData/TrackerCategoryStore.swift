@@ -56,8 +56,45 @@ final class TrackerCategoryStore: NSObject {
         
         return TrackerCategory(
             title: title,
-            trackers: [] // нужно будет добавить связь с трекерами
+            trackers: [] 
         )
+    }
+    
+    func deleteCategory(title: String) throws {
+        let request = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", title)
+        
+        do {
+            let categories = try context.fetch(request)
+            guard let categoryToDelete = categories.first else {
+                print("\(#file):\(#line)] \(#function) Категория не найдена: \(title)")
+                return
+            }
+            
+            context.delete(categoryToDelete)
+            try context.save()
+            print("\(#file):\(#line)] \(#function) Категория успешно удалена: \(title)")
+        } catch {
+            print("\(#file):\(#line)] \(#function) Ошибка удаления категории: \(error)")
+            throw error
+        }
+    }
+    
+    func updateCategory(oldTitle: String, newTitle: String) throws {
+        let request = TrackerCategoryCoreData.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", oldTitle)
+        
+        do {
+            let categories = try context.fetch(request)
+            if let category = categories.first {
+                category.title = newTitle
+                try context.save()
+                print("\(#file):\(#line)] \(#function) Обновлена категория: \(oldTitle) -> \(newTitle)")
+            }
+        } catch {
+            print("\(#file):\(#line)] \(#function) Ошибка обновления категории: \(error)")
+            throw error
+        }
     }
 }
 
